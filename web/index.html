@@ -10,6 +10,22 @@
   <title>Fintrack | Personal Finance</title>
   <link rel="icon" type="image/png" href="flutter-favicon.png">
   <link rel="manifest" href="manifest.json">
+
+  <script>
+    const titleObserver = new MutationObserver(() => {
+      if (document.title !== 'Fintrack') {
+        document.title = 'Fintrack';
+      }
+    });
+
+    titleObserver.observe(document.head, {
+      subtree: true,
+      childList: true,
+      characterData: true
+    });
+
+    document.title = 'Fintrack';
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
