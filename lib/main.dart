@@ -48,6 +48,7 @@ class _FintrackEntryPointState extends State<FintrackEntryPoint> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const MaterialApp(
+              title: 'Fintrack',
               home: Scaffold(body: Center(child: CircularProgressIndicator())));
         }
         final user = snapshot.data;
@@ -125,6 +126,7 @@ class _FintrackAuthScreenState extends State<FintrackAuthScreen> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
+        title: 'Fintrack',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: brand),
