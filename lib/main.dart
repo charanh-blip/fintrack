@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 
-const brand = Color(0xFF4968F5);
+const brand = Color(0xFF159B68);
 const ink = Color(0xFF17213A);
 const muted = Color(0xFF7B8499);
 
@@ -733,19 +734,90 @@ class _FintrackAppState extends State<FintrackApp> {
               colorScheme: ColorScheme.fromSeed(
                   seedColor: brand, brightness: Brightness.light),
               useMaterial3: true,
-              scaffoldBackgroundColor: const Color(0xFFF5F7FC),
+              scaffoldBackgroundColor: const Color(0xFFF1F7F3),
               fontFamily: 'Arial',
+              visualDensity: VisualDensity.standard,
+              appBarTheme: const AppBarTheme(
+                  backgroundColor: Color(0xFFF1F7F3),
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0),
+              filledButtonTheme: FilledButtonThemeData(
+                  style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF138A5B),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      textStyle: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 13))),
               cardTheme: const CardThemeData(
                   color: Colors.white, elevation: 0, margin: EdgeInsets.zero)),
           darkTheme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                   seedColor: brand, brightness: Brightness.dark),
               useMaterial3: true,
-              scaffoldBackgroundColor: const Color(0xFF0D1220),
+              scaffoldBackgroundColor: const Color(0xFF071A13),
               fontFamily: 'Arial',
+              visualDensity: VisualDensity.standard,
+              appBarTheme: const AppBarTheme(
+                  backgroundColor: Color(0xFF071A13),
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0),
+              filledButtonTheme: FilledButtonThemeData(
+                  style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF20B47A),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      textStyle: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 13))),
               cardTheme:
                   const CardThemeData(elevation: 0, margin: EdgeInsets.zero)),
           home: FintrackShell(store: store)));
+}
+
+class CurrencyBackdropPainter extends CustomPainter {
+  CurrencyBackdropPainter({required this.dark});
+  final bool dark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const symbols = ['₹', '\$', '€', '£', '¥', '₩', '₽', '₺', '₫', '₱'];
+    final paint = Paint()
+      ..color = (dark ? const Color(0xFF6BE6B0) : const Color(0xFF168A5B))
+          .withValues(alpha: dark ? .075 : .055);
+    final style = TextStyle(
+      color: paint.color,
+      fontSize: 34,
+      fontWeight: FontWeight.w700,
+    );
+    const stepX = 148.0;
+    const stepY = 118.0;
+    var index = 0;
+    for (double y = 22; y < size.height + stepY; y += stepY) {
+      final offset = ((y ~/ stepY).isEven) ? 0.0 : 66.0;
+      for (double x = -20 + offset; x < size.width + stepX; x += stepX) {
+        final symbol = symbols[index % symbols.length];
+        final tp = TextPainter(
+          text: TextSpan(text: symbol, style: style),
+          textDirection: ui.TextDirection.ltr,
+        )..layout();
+        canvas.save();
+        canvas.translate(x, y);
+        canvas.rotate(((index % 5) - 2) * .045);
+        tp.paint(canvas, Offset.zero);
+        canvas.restore();
+        index++;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CurrencyBackdropPainter oldDelegate) =>
+      oldDelegate.dark != dark;
 }
 
 class FintrackShell extends StatefulWidget {
@@ -786,10 +858,16 @@ class _FintrackShellState extends State<FintrackShell> {
       SettingsPage(store: widget.store)
     ];
     return Scaffold(
-        body: Row(children: [
+        body: Stack(children: [
+          Positioned.fill(
+              child: IgnorePointer(
+                  child: CustomPaint(
+                      painter: CurrencyBackdropPainter(
+                          dark: Theme.of(context).brightness == Brightness.dark)))),
+          Row(children: [
           if (wide)
             Container(
-                width: 246,
+                width: 258,
                 color: Theme.of(context).colorScheme.surface,
                 child: SafeArea(
                     child: Column(
@@ -889,6 +967,7 @@ class _FintrackShellState extends State<FintrackShell> {
                         key: ValueKey(selected), child: content[selected])))
           ])))
         ]),
+        ]),
         bottomNavigationBar: wide
             ? null
             : NavigationBar(
@@ -933,11 +1012,11 @@ class _FintrackShellState extends State<FintrackShell> {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         child: InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             onTap: () => setState(() => selected = i),
             child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                 decoration: BoxDecoration(
                     color: active
                         ? brand.withValues(alpha: .12)
@@ -1000,8 +1079,8 @@ class PageFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
       padding: EdgeInsets.symmetric(
-          horizontal: MediaQuery.sizeOf(context).width < 600 ? 16 : 30,
-          vertical: 22),
+          horizontal: MediaQuery.sizeOf(context).width < 600 ? 16 : 34,
+          vertical: 28),
       child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1440),
           child:
@@ -1013,12 +1092,12 @@ class PageFrame extends StatelessWidget {
                       children: [
                     Text(title,
                         style: const TextStyle(
-                            fontSize: 26,
+                            fontSize: 28,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: -.8)),
+                            letterSpacing: -1.0)),
                     const SizedBox(height: 5),
                     Text(subtitle,
-                        style: const TextStyle(color: muted, fontSize: 12))
+                        style: const TextStyle(color: muted, fontSize: 13, height: 1.4))
                   ])),
               if (action != null) action!
             ]),
@@ -1040,9 +1119,16 @@ class Panel extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-              color: Theme.of(context).dividerColor.withValues(alpha: .35))),
+              color: Theme.of(context).dividerColor.withValues(alpha: .32)),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.dark ? .12 : .035),
+                blurRadius: 24,
+                offset: const Offset(0, 8))
+          ]),
       child: child);
 }
 
@@ -1053,43 +1139,85 @@ class MetricCard extends StatelessWidget {
       required this.value,
       required this.icon,
       required this.tint,
-      required this.caption});
+      required this.caption,
+      this.circular = false});
   final String label, value, caption;
   final IconData icon;
   final Color tint;
+  final bool circular;
+
   @override
-  Widget build(BuildContext context) => Panel(
-      padding: const EdgeInsets.all(18),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                  color: tint.withValues(alpha: .13),
-                  borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, color: tint, size: 18)),
-          const Spacer(),
-          const Icon(Icons.more_horiz, color: muted, size: 20)
-        ]),
-        const SizedBox(height: 17),
-        Text(label,
-            style: const TextStyle(
-                color: muted, fontSize: 12, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
-        FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value,
-                style: const TextStyle(
-                    fontSize: 23,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -.7))),
-        const SizedBox(height: 6),
-        Text(caption,
-            style: TextStyle(
-                color: tint, fontSize: 10, fontWeight: FontWeight.w700))
-      ]));
+  Widget build(BuildContext context) => LayoutBuilder(
+      builder: (context, constraints) {
+        final dark = Theme.of(context).brightness == Brightness.dark;
+        final content = Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                      color: tint.withValues(alpha: dark ? .20 : .12),
+                      shape: BoxShape.circle),
+                  child: Icon(icon, color: tint, size: 18)),
+              const SizedBox(height: 9),
+              Text(label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(value,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -.8))),
+              const SizedBox(height: 5),
+              Text(caption,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: tint, fontSize: 9.5, fontWeight: FontWeight.w700))
+            ]);
+        if (!circular) {
+          return Panel(padding: const EdgeInsets.all(20), child: content);
+        }
+        final diameter = constraints.maxWidth < constraints.maxHeight
+            ? constraints.maxWidth
+            : constraints.maxHeight;
+        return Center(
+            child: Container(
+                width: diameter,
+                height: diameter,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border.all(
+                        color: tint.withValues(alpha: dark ? .62 : .48),
+                        width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                          color: tint.withValues(alpha: dark ? .25 : .14),
+                          blurRadius: dark ? 32 : 24,
+                          spreadRadius: dark ? 2 : 1),
+                      BoxShadow(
+                          color: tint.withValues(alpha: dark ? .10 : .06),
+                          blurRadius: 48,
+                          spreadRadius: 5)
+                    ]),
+                child: Center(child: content)));
+      });
 }
 
 class DashboardPage extends StatelessWidget {
@@ -1101,13 +1229,21 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final columns = width < 650
+    final columns = width < 420
         ? 1
         : width < 1100
             ? 2
             : 4;
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12
+        ? 'Good morning'
+        : hour < 17
+            ? 'Good afternoon'
+            : hour < 21
+                ? 'Good evening'
+                : 'Good night';
     return PageFrame(
-      title: 'Good afternoon',
+      title: greeting,
       subtitle: 'Here is your financial overview.',
       action: FilledButton.icon(
         onPressed: () => showEntryDialog(context, store),
@@ -1124,36 +1260,38 @@ class DashboardPage extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 13,
             mainAxisSpacing: 13,
-            childAspectRatio: width < 650
-                ? 1.8
-                : width < 1100
-                    ? 1.65
-                    : 1.35,
+            // Give metric cards enough vertical room to avoid a small
+            // RenderFlex overflow at desktop and narrower breakpoints.
+            childAspectRatio: 1.0,
             children: [
               MetricCard(
                   label: 'Total balance',
                   value: money(store.balance, store.baseCurrency),
                   icon: Icons.account_balance_wallet_outlined,
                   tint: brand,
-                  caption: 'Across recorded transactions'),
+                  caption: 'Across recorded transactions',
+                  circular: true),
               MetricCard(
                   label: 'Total income',
                   value: money(store.income, store.baseCurrency),
                   icon: Icons.trending_up,
                   tint: const Color(0xFF16B981),
-                  caption: 'Money received'),
+                  caption: 'Money received',
+                  circular: true),
               MetricCard(
                   label: 'Total expenses',
                   value: money(store.expenses, store.baseCurrency),
                   icon: Icons.trending_down,
-                  tint: const Color(0xFFEF6B73),
-                  caption: 'Money spent'),
+                  tint: const Color(0xFFEF5350),
+                  caption: 'Money spent',
+                  circular: true),
               MetricCard(
                   label: 'Savings rate',
                   value: '${(store.savingsRate * 100).toStringAsFixed(1)}%',
                   icon: Icons.savings_outlined,
-                  tint: const Color(0xFFF59E0B),
-                  caption: 'Income retained'),
+                  tint: const Color(0xFFF5B82E),
+                  caption: 'Income retained',
+                  circular: true),
             ],
           ),
           const SizedBox(height: 18),
@@ -1309,6 +1447,14 @@ class BarsPainter extends CustomPainter {
           Rect.fromLTWH(x, h == 0 ? size.height - 3 : size.height - h,
               size.width * .14, h == 0 ? 3 : h),
           const Radius.circular(7));
+      final glow = Paint()
+        ..color = colors[i].withValues(alpha: .48)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+      canvas.drawRRect(rect, glow);
+      final softGlow = Paint()
+        ..color = colors[i].withValues(alpha: .22)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30);
+      canvas.drawRRect(rect, softGlow);
       canvas.drawRRect(rect, Paint()..color = colors[i]);
     }
   }
