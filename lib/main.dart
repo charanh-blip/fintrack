@@ -829,6 +829,7 @@ class FintrackShell extends StatefulWidget {
 
 class _FintrackShellState extends State<FintrackShell> {
   int selected = 0;
+  bool sidebarExpanded = true;
   final pages = [
     'Overview',
     'Transactions',
@@ -866,15 +867,17 @@ class _FintrackShellState extends State<FintrackShell> {
                           dark: Theme.of(context).brightness == Brightness.dark)))),
           Row(children: [
           if (wide)
-            Container(
-                width: 258,
+            AnimatedContainer(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeInOutCubic,
+                width: sidebarExpanded ? 258 : 76,
                 color: Theme.of(context).colorScheme.surface,
                 child: SafeArea(
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                       Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 28, 20, 30),
+                          padding: EdgeInsets.fromLTRB(sidebarExpanded ? 24 : 19, 20, 12, 26),
                           child: Row(children: [
                             Container(
                                 width: 38,
@@ -885,24 +888,21 @@ class _FintrackShellState extends State<FintrackShell> {
                                 child: const Icon(
                                     Icons.account_balance_wallet_rounded,
                                     color: Colors.white)),
-                            const SizedBox(width: 12),
-                            const Text('fintrack',
-                                style: TextStyle(
-                                    fontSize: 23,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -.8))
+                            if (sidebarExpanded) ...[
+                              const SizedBox(width: 12),
+                              const Flexible(child: Text('fintrack', overflow: TextOverflow.fade, softWrap: false,
+                                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800, letterSpacing: -.8)))
+                            ]
                           ])),
-                      const Padding(
-                          padding: EdgeInsets.fromLTRB(24, 0, 0, 12),
-                          child: Text('WORKSPACE',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: muted,
-                                  letterSpacing: 1.4))),
+                      if (sidebarExpanded)
+                        const Padding(
+                            padding: EdgeInsets.fromLTRB(24, 0, 0, 12),
+                            child: Text('WORKSPACE',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800,
+                                    color: muted, letterSpacing: 1.4))),
                       for (int i = 0; i < pages.length; i++) _navItem(i),
                       const Spacer(),
-                      Container(
+                      if (sidebarExpanded) Container(
                           margin: const EdgeInsets.all(16),
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -918,15 +918,15 @@ class _FintrackShellState extends State<FintrackShell> {
                                         fontSize: 12)))
                           ])),
                       Padding(
-                          padding: const EdgeInsets.all(18),
+                          padding: EdgeInsets.all(sidebarExpanded ? 18 : 10),
                           child: Row(children: [
                             const CircleAvatar(
                                 radius: 17,
                                 backgroundColor: Color(0xFFE5E9FF),
                                 child:
                                     Icon(Icons.person, color: brand, size: 18)),
-                            const SizedBox(width: 10),
-                            Expanded(
+                            if (sidebarExpanded) const SizedBox(width: 10),
+                            if (sidebarExpanded) Expanded(
                                 child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -947,7 +947,7 @@ class _FintrackShellState extends State<FintrackShell> {
                                       style: const TextStyle(
                                           fontSize: 10, color: muted))
                                 ])),
-                            IconButton(
+                            if (sidebarExpanded) IconButton(
                                 onPressed: widget.store.toggleTheme,
                                 icon: Icon(
                                     widget.store.dark
@@ -959,6 +959,22 @@ class _FintrackShellState extends State<FintrackShell> {
           Expanded(
               child: SafeArea(
                   child: Column(children: [
+            if (wide)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: IconButton.filledTonal(
+                    tooltip: sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar',
+                    onPressed: () => setState(() => sidebarExpanded = !sidebarExpanded),
+                    icon: AnimatedRotation(
+                      turns: sidebarExpanded ? 0 : .5,
+                      duration: const Duration(milliseconds: 260),
+                      child: const Icon(Icons.menu_rounded),
+                    ),
+                  ),
+                ),
+              ),
             if (!wide) _mobileHeader(),
             Expanded(
                 child: AnimatedSwitcher(
@@ -1011,12 +1027,13 @@ class _FintrackShellState extends State<FintrackShell> {
     final active = selected == i;
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        child: InkWell(
+        child: Tooltip(
+          message: sidebarExpanded ? pages[i] : pages[i],
+          child: InkWell(
             borderRadius: BorderRadius.circular(14),
             onTap: () => setState(() => selected = i),
             child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                padding: EdgeInsets.symmetric(horizontal: sidebarExpanded ? 14 : 15, vertical: 13),
                 decoration: BoxDecoration(
                     color: active
                         ? brand.withValues(alpha: .12)
@@ -1024,16 +1041,13 @@ class _FintrackShellState extends State<FintrackShell> {
                     borderRadius: BorderRadius.circular(12)),
                 child: Row(children: [
                   Icon(icons[i], size: 19, color: active ? brand : muted),
-                  const SizedBox(width: 13),
-                  Text(pages[i],
-                      style: TextStyle(
-                          fontWeight:
-                              active ? FontWeight.w700 : FontWeight.w500,
-                          color: active
-                              ? brand
-                              : Theme.of(context).colorScheme.onSurface,
-                          fontSize: 13))
-                ]))));
+                  if (sidebarExpanded) ...[
+                    const SizedBox(width: 13),
+                    Flexible(child: Text(pages[i], overflow: TextOverflow.fade, softWrap: false,
+                        style: TextStyle(fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                            color: active ? brand : Theme.of(context).colorScheme.onSurface, fontSize: 13)))
+                  ]
+                ])))));
   }
 }
 
